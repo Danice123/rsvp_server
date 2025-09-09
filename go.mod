@@ -1,6 +1,6 @@
 module github.com/Danice123/rsvp_server
 
-go 1.24.6
+go 1.24.5
 
 require (
 	github.com/lithammer/fuzzysearch v1.1.8
