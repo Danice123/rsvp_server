@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>RSVP to our wedding</title>
+        <script>
+            async function searchForInvite() {
+                var name = document.getElementById("nameInput").value
+                var resp = await fetch("/FindInvite?name=" + name)
+                var list = await resp.json()
+
+                var il = document.getElementById("inviteList")
+                il.innerHTML = ""
+                list.forEach(invite => {
+                    var newButton = document.createElement('button');
+                    newButton.textContent = invite.FirstName + " " + invite.LastName
+                    newButton.addEventListener('click', () => {
+                        showInvite(invite.Id)
+                    })
+                    il.append(newButton)
+                });
+            }
+
+            async function showInvite(id) {
+                var resp = await fetch("/GetInvite?id=" + id)
+                var list = await resp.json()
+
+                 var pl = document.getElementById("personList")
+                 pl.innerHTML = ""
+                list.forEach(person => {
+                    var newRow = document.createElement('tr');
+
+                    var name = document.createElement('td')
+                    name.textContent = person.Name
+                    newRow.append(name)
+
+                    var rsvpyes = document.createElement('td')
+                    var checkyes = document.createElement('input')
+                    checkyes.setAttribute('type', 'radio')
+                    checkyes.setAttribute('name', 'rsvpcheck' + person.Id);
+                    checkyes.setAttribute('value', 1);
+                    if (person.RSVP == 1) {
+                        checkyes.checked = true
+                    }
+                    rsvpyes.append(checkyes)
+                    newRow.append(rsvpyes)
+
+                    var rsvpno = document.createElement('td')
+                    var checkno = document.createElement('input')
+                    checkno.setAttribute('type', 'radio')
+                    checkno.setAttribute('name', 'rsvpcheck' + person.Id);
+                    checkno.setAttribute('value', 0);
+                    if (person.RSVP == 0) {
+                        checkno.checked = true
+                    }
+                    rsvpno.append(checkno)
+                    newRow.append(rsvpno)
+
+                    var dietary = document.createElement('td')
+                    var dietaryInput = document.createElement('input')
+                    dietaryInput.value = person.Dietary
+                    dietary.append(dietaryInput)
+                    newRow.append(dietary)
+
+                    var notes = document.createElement('td')
+                    var notesInput = document.createElement('input')
+                    notesInput.value = person.Notes
+                    notes.append(notesInput)
+                    newRow.append(notes)
+
+                    var submit = document.createElement('td')
+                    var submitButton = document.createElement('button')
+                    submitButton.textContent = "RSVP"
+                    submitButton.addEventListener('click', () => {
+                        var post = {}
+                        post.Id = person.Id
+                        if (document.querySelector('input[name="rsvpcheck' + person.Id + '"]:checked') != null) {
+                            post.RSVP = parseInt(document.querySelector('input[name="rsvpcheck' + person.Id + '"]:checked').value)
+                        }
+                        post.Dietary = dietaryInput.value
+                        post.Notes = notesInput.value
+                        
+                        fetch('/RSVP', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(post),
+                        })
+                    })
+                    submit.append(submitButton)
+                    newRow.append(submit)
+
+                    pl.append(newRow)
+                });
+                
+                var eu = document.getElementById('emailUpdate')
+
+                var email = document.createElement('input')
+                eu.append(email)
+                var emailSubmit = document.createElement('button')
+                emailSubmit.textContent = 'Submit Email Address for Updates'
+                emailSubmit.addEventListener('click', () => {
+                    var body = {}
+                    body.Id = id
+                    body.Email = email.value
+
+                    fetch('/UpdateEmail', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(body),
+                    })
+                })
+                eu.append(emailSubmit)
+            }
+        </script>
+    </head>
+    <body>
+        <div>
+            Last Name: <input id="nameInput"/>
+            <button onclick="searchForInvite()">Find Invite</button>
+            <div id="inviteList"></div>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Coming</th>
+                    <th>Not Coming</th>
+                    <th>Dietary Restrictions</th>
+                    <th>Anything else?</th>
+                    <th>Submit</th>
+                </tr>
+            </thead>
+            <tbody id="personList">
+
+            </tbody>
+        </table>
+        <div id="emailUpdate"></div>
+    </body>
+</html>

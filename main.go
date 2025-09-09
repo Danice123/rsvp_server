@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"text/template"
 
 	_ "modernc.org/sqlite"
 )
@@ -22,11 +23,25 @@ func main() {
 
 	s := server{db: db{conn: conn}}
 	mux := http.NewServeMux()
+	mux.HandleFunc("/", website)
 	mux.HandleFunc("/FindInvite", s.findInvite)
 	mux.HandleFunc("/GetInvite", s.getInvite)
 	mux.HandleFunc("/RSVP", s.rsvp)
 	mux.HandleFunc("/UpdateEmail", s.updateEmail)
 	log.Fatal(http.ListenAndServe(os.Args[1], mux))
+}
+
+func website(w http.ResponseWriter, r *http.Request) {
+	var homeTemplate = template.New("Home")
+	if html, err := os.ReadFile("website.html"); err != nil {
+		panic(err.Error())
+	} else {
+		if _, err := homeTemplate.Parse(string(html)); err != nil {
+			panic(err.Error())
+		} else {
+			homeTemplate.Execute(w, nil)
+		}
+	}
 }
 
 type server struct {
