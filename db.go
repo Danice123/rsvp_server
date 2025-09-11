@@ -15,10 +15,11 @@ type Invite struct {
 	Id        int
 	FirstName string
 	LastName  string
+	HasEmail  bool
 }
 
 func (db *db) getFuzzyInvite(lastName string) ([]Invite, error) {
-	rows, err := db.conn.Query("select id, first_name, last_name from invite")
+	rows, err := db.conn.Query("select id, first_name, last_name, email is not null from invite")
 	if err != nil {
 		return nil, err
 	}
@@ -27,7 +28,7 @@ func (db *db) getFuzzyInvite(lastName string) ([]Invite, error) {
 	var invites []Invite
 	for rows.Next() {
 		var i Invite
-		err = rows.Scan(&i.Id, &i.FirstName, &i.LastName)
+		err = rows.Scan(&i.Id, &i.FirstName, &i.LastName, &i.HasEmail)
 		if err != nil {
 			return nil, err
 		}
