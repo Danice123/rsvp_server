@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"text/template"
 
+	"github.com/rs/cors"
 	_ "modernc.org/sqlite"
 )
 
@@ -28,7 +29,11 @@ func main() {
 	mux.HandleFunc("/GetInvite", s.getInvite)
 	mux.HandleFunc("/RSVP", s.rsvp)
 	mux.HandleFunc("/UpdateEmail", s.updateEmail)
-	log.Fatal(http.ListenAndServe(os.Args[1], mux))
+
+	log.Fatal(http.ListenAndServe(os.Args[1], cors.New(cors.Options{
+		AllowedOrigins:   []string{"*"},
+		AllowCredentials: false,
+	}).Handler(mux)))
 }
 
 func website(w http.ResponseWriter, r *http.Request) {
