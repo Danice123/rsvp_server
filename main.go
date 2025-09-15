@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -107,7 +106,6 @@ func (s *server) rsvp(w http.ResponseWriter, r *http.Request) {
 		retErr(w, err)
 		return
 	}
-	fmt.Printf("%v\n", p)
 
 	err = s.db.rsvp(p)
 	if err != nil {
