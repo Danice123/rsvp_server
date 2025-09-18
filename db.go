@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"sort"
+	"slices"
 
 	"github.com/lithammer/fuzzysearch/fuzzy"
 )
@@ -39,17 +39,26 @@ func (db *db) getFuzzyInvite(lastName string) ([]Invite, error) {
 		return nil, err
 	}
 
-	var lastNames []string
-	for n := range uniqueLastNames {
-		lastNames = append(lastNames, n)
+	type nameDistance struct {
+		Name     string
+		Distance int
 	}
 
-	ranked := fuzzy.RankFindFold(lastName, lastNames)
-	sort.Sort(ranked)
+	var lastNames []nameDistance
+	for n := range uniqueLastNames {
+		lastNames = append(lastNames, nameDistance{
+			Name:     n,
+			Distance: fuzzy.LevenshteinDistance(lastName, n),
+		})
+	}
+
+	slices.SortFunc(lastNames, func(i, j nameDistance) int {
+		return i.Distance - j.Distance
+	})
 
 	var results []Invite
-	for i := 0; i < len(ranked) && ranked[i].Distance < 5; i++ {
-		n := ranked[i].Target
+	for i := 0; i < len(lastNames) && lastNames[i].Distance < 3; i++ {
+		n := lastNames[i].Name
 		for _, invite := range invites {
 			if invite.LastName == n {
 				results = append(results, invite)
